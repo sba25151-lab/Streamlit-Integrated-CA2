@@ -2,7 +2,14 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
-from recommender_logic import get_similar_products_cosine_similarity, recommend_user_via_basket_items_prod_name, recommend_user_via_users_prod_name, get_similar_products_knn_full, recommend_grocery_meta
+# Import everything cleanly from your module
+from recommender_logic import (
+    get_similar_products_cosine_similarity, 
+    recommend_user_via_basket_items_prod_name, 
+    recommend_user_via_users_prod_name, 
+    get_similar_products_knn_full, 
+    recommend_grocery_meta
+)
 
 st.set_page_config(layout="wide")
 st.title("🛒 Multi-Engine E-Commerce Recommendation Dashboard")
@@ -37,11 +44,7 @@ df_amazon = assets['df_amazon']
 amazon_cosine_sim = assets['amazon_cosine_sim']
 amazon_indices = assets['amazon_indices']
 
-
-# =========================================================================
-#   DASHBOARD NAVIGATION USER INTERFACE (UI)
-# =========================================================================
-
+# Sidebar Navigation
 navigation = st.sidebar.radio("Navigate Engines", [
     "Instacart: Find Similar Products (KNN Full)",
     "Instacart: Find Similar Products (Cosine)",
@@ -56,7 +59,14 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
     chosen_id = [k for k, v in id_to_name.items() if v == chosen_name][0]
     
     if st.button("Calculate Nearest Neighbors"):
-        recs = get_similar_products_knn_full(chosen_id)
+        # Correctly pass arguments into the fixed recommender_logic module
+        recs = get_similar_products_knn_full(
+            chosen_id, 
+            matrix_product_ids_full, 
+            model_knn_full, 
+            item_item_sparse_full, 
+            id_to_name
+        )
         st.dataframe(recs, use_container_width=True)
 
 elif navigation == "Instacart: Find Similar Products (Cosine)":
@@ -66,7 +76,7 @@ elif navigation == "Instacart: Find Similar Products (Cosine)":
     chosen_id = [k for k, v in id_to_name.items() if v == chosen_name][0]
     
     if st.button("Calculate Similarities"):
-        recs = get_similar_products_cosine_similarity(chosen_id)
+        recs = get_similar_products_cosine_similarity(chosen_id, item_sim_df, id_to_name)
         st.dataframe(recs, use_container_width=True)
 
 elif navigation == "Instacart: Personalized User Recommendations":
@@ -78,11 +88,11 @@ elif navigation == "Instacart: Personalized User Recommendations":
     with col1:
         st.markdown("**Option A: Based on their overall purchase history basket similarity**")
         if st.button("Run Basket Engine"):
-            st.dataframe(recommend_user_via_basket_items_prod_name(chosen_user), use_container_width=True)
+            st.dataframe(recommend_user_via_basket_items_prod_name(chosen_user, user_item_matrix, item_sim_df, id_to_name), use_container_width=True)
     with col2:
         st.markdown("**Option B: Collaborative Filtering (What similar customers bought)**")
         if st.button("Run User-User Engine"):
-            st.dataframe(recommend_user_via_users_prod_name(chosen_user), use_container_width=True)
+            st.dataframe(recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name), use_container_width=True)
 
 elif navigation == "Amazon: Content-Based Meta Engine":
     st.subheader("📖 Content text-matching engine (TF-IDF Title Matching)")
@@ -91,22 +101,5 @@ elif navigation == "Amazon: Content-Based Meta Engine":
     chosen_asin = [k for k, v in amazon_choices.items() if v == chosen_title][0]
     
     if st.button("Find Text Match Recommendations"):
-        st.dataframe(recommend_grocery_meta(chosen_asin), use_container_width=True)
-
-# =========================================================================
-#   RUN FUNCTIONS
-# =========================================================================
-
-# User selects item...
-chosen_id = 4210 
-
-if st.button("Run Full KNN Engine"):
-    # Simply call the imported function and feed it the asset components it needs
-    recs = get_similar_products_knn_full(
-        chosen_id, 
-        assets['model_knn_full'], 
-        assets['item_item_sparse_full'], 
-        assets['matrix_product_ids_full'], 
-        assets['id_to_name']
-    )
-    st.dataframe(recs)
+        recs = recommend_grocery_meta(chosen_asin, amazon_indices, amazon_cosine_sim, df_amazon)
+        st.dataframe(recs, use_container_width=True)
