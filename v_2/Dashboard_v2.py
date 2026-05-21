@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 import numpy as np
 # Import everything cleanly from your module
-from recommender_logic import (
+from recommender_logic_v2 import (
     get_similar_products_cosine_similarity, 
     recommend_user_via_basket_items_prod_name, 
     recommend_user_via_users_prod_name, 
