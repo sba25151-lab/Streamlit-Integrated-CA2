@@ -91,5 +91,5 @@ def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_am
     # Append the similarity scores column
     results_df['similarity_score'] = scores
     
-    # Reset index so PyArrow renders it cleanly on Streamlit without errors
+    # FIX: Reset the index to keep PyArrow happy and avoid the ArrowInvalid error
     return results_df.reset_index(drop=True)
