@@ -16,11 +16,11 @@ def get_similar_products_cosine_similarity(product_id, item_sim_df, id_to_name, 
 
 # --- ENGINE 1B: USER RECS VIA PAST BASKET (Instacart Sample) --- (Dictionary-Safe Version) ---
 def recommend_user_via_basket_items_prod_name(user_id, user_item_matrix, item_sim_df, id_to_name, top_n=5):
-    # 1. Get the items this user has already bought
+    # Get the items this user has already bought
     user_history = user_item_matrix.loc[user_id]
     bought_product_ids = user_history[user_history > 0].index
     
-    # 2. Accumulate similarity scores from the dictionary
+    # Accumulate similarity scores from the dictionary
     scores = {}
     for pid in bought_product_ids:
         # Check if the product exists in our top-50 similarity dictionary
@@ -29,7 +29,7 @@ def recommend_user_via_basket_items_prod_name(user_id, user_item_matrix, item_si
             for sim_pid, score in item_sim_df[pid].items():
                 scores[sim_pid] = scores.get(sim_pid, 0) + score
                 
-    # 3. Convert results to a Series, drop items they already bought, and sort
+    # Convert results to a Series, drop items they already bought, and sort
     if not scores:
         return pd.DataFrame(columns=['product_name', 'recommendation_score'])
         
@@ -64,8 +64,22 @@ def get_similar_products_knn_full(product_id, matrix_product_ids_full, model_knn
 # --- ENGINE 4: CONTENT-BASED FILTERING (Amazon Grocery Metadata) ---
 def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_amazon):
     if parent_asin not in amazon_indices:
-        return pd.DataFrame(columns=['parent_asin', 'title', 'store'])
+        return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
+        
     idx = amazon_indices[parent_asin]
+    
+    # Grab similarities and sort descending
     sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
-    item_indices = [i[0] for i in sim_scores[1:6]]
-    return df_amazon.iloc[item_indices]
+    
+    # Get top 5 matches (skipping index 0)
+    top_matches = sim_scores[1:6]
+    
+    # Extract both indices and mathematical scores
+    item_indices = [i[0] for i in top_matches]
+    scores = [i[1] for i in top_matches]
+    
+    # Create a safe copy of the table slice and map the scores
+    results_df = df_amazon[['parent_asin', 'title', 'store']].iloc[item_indices].copy()
+    results_df['similarity_score'] = scores
+    
+    return results_df
