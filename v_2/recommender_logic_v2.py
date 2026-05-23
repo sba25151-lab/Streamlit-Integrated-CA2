@@ -63,9 +63,33 @@ def get_similar_products_knn_full(product_id, matrix_product_ids_full, model_knn
 
 # --- ENGINE 4: CONTENT-BASED FILTERING (Amazon Grocery Metadata) ---
 def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_amazon):
+    # Ensure the parent_asin is in the index lookup series
     if parent_asin not in amazon_indices:
         return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
+        
+    # Get the integer row position
     idx = amazon_indices[parent_asin]
-    sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
-    item_indices = [i[0] for i in sim_scores[1:6]]
-    return df_amazon.iloc[item_indices]
+    
+    # Handle duplicate keys safely if index returns a Series
+    if isinstance(idx, pd.Series):
+        idx = idx.iloc[0]
+        
+    # Grab similarities using the row position from your matrix/array
+    sim_scores = list(enumerate(amazon_cosine_sim[idx]))
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    
+    # Get top 5 matches (skipping index 0 which matches the item with itself)
+    top_matches = sim_scores[1:6]
+    
+    # Extract row positions and numerical similarity scores
+    item_indices = [i[0] for i in top_matches]
+    scores = [i[1] for i in top_matches]
+    
+    # Pull the specific rows directly using .iloc just like your Jupyter Notebook
+    results_df = df_amazon[['parent_asin', 'title', 'store']].iloc[item_indices].copy()
+    
+    # Append the similarity scores column
+    results_df['similarity_score'] = scores
+    
+    # Reset index so PyArrow renders it cleanly on Streamlit without errors
+    return results_df.reset_index(drop=True)
