@@ -30,11 +30,11 @@ assets = load_compressed_assets()
 
 # Unpack Global Metadata
 id_to_name = assets['id_to_name']
-user_item_matrix = assets['user_item_matrix_lean']
+user_item_matrix = assets['user_item_matrix']
 
 # Unpack Dense Cosine Assets
-item_sim_df = assets['item_sim_lean']
-user_sim_df = assets['user_sim_lean']
+item_sim_df = assets['item_sim_df']
+user_sim_df = assets['user_sim_df']
 
 # Unpack KNN Assets
 #model_knn_sample = assets['model_knn_sample']
@@ -46,9 +46,9 @@ item_item_sparse_full = assets['item_item_sparse_full']
 matrix_product_ids_full = assets['matrix_product_ids_full']
 
 # Unpack Amazon Content-Based Assets
-df_amazon = assets['df_amazon_lean']
-amazon_cosine_sim = assets['amazon_sim_lean']
-amazon_indices = assets['amazon_indices_lean']
+df_amazon = assets['df_amazon']
+amazon_cosine_sim = assets['amazon_cosine_sim']
+amazon_indices = assets['amazon_indices']
 
 # Sidebar Navigation
 navigation = st.sidebar.radio("Navigate Engines", [
