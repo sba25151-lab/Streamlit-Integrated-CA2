@@ -5,7 +5,7 @@ import pandas as pd
 # =========================================================================
 
 def get_similar_products_cosine_similarity(product_id, item_sim_df, id_to_name, top_n=10):
-    if product_id not in item_sim_df.columns:
+    if product_id not in item_sim_df.keys():
         return pd.DataFrame(columns=['product_name', 'similarity_score'])
     similarity_scores = item_sim_df[product_id].sort_values(ascending=False).drop(product_id, errors='ignore')
     top_products = similarity_scores.head(top_n)
