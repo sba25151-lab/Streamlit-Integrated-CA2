@@ -2,15 +2,24 @@ import streamlit as st
 import pandas as pd
 import pickle
 import numpy as np
+import os
+
 from recommender_logic import get_similar_products_cosine_similarity, recommend_user_via_basket_items_prod_name, recommend_user_via_users_prod_name, get_similar_products_knn_full, recommend_grocery_meta
 
 st.set_page_config(layout="wide")
 st.title("🛒 Multi-Engine E-Commerce Recommendation Dashboard")
 
-# High-Performance Asset Loading
+# Asset Loading
 @st.cache_resource
 def load_all_assets():
-    with open('dashboard_assets.pkl', 'rb') as f:
+    # Finds the absolute folder path where Dashboard_v2.py lives (the v_2 folder)
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    # Safely joins that directory path with your asset filename
+    pkl_path = os.path.join(current_dir, 'dashboard_assets.pkl')
+    
+    # Load using the absolute path
+    with open(pkl_path, 'rb') as f:
         return pickle.load(f)
 
 assets = load_all_assets()

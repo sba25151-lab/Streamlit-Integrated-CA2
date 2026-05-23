@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import pickle
+import joblib
 import numpy as np
 import os
 
@@ -15,41 +15,40 @@ from recommender_logic_v2 import (
 st.set_page_config(layout="wide")
 st.title("🛒 Multi-Engine E-Commerce Recommendation Dashboard")
 
-@st.cache_resource
-def load_all_assets():
-    # Finds the absolute folder path where Dashboard_v2.py lives (the v_2 folder)
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    
-    # Safely joins that directory path with your asset filename
-    pkl_path = os.path.join(current_dir, 'dashboard_assets.pkl')
-    
-    # Load using the absolute path
-    with open(pkl_path, 'rb') as f:
-        return pickle.load(f)
 
-assets = load_all_assets()
+@st.cache_resource
+def load_compressed_assets():
+    # Dynamically locate the folder where Dashboard_v2.py sits
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    pkl_path = os.path.join(current_dir, 'dashboard_assets.pkl.gz')
+    
+    # joblib handles .gz decompression natively
+    return joblib.load(pkl_path)
+
+# Execute the cache function
+assets = load_compressed_assets()
 
 # Unpack Global Metadata
 id_to_name = assets['id_to_name']
-user_item_matrix = assets['user_item_matrix']
+user_item_matrix = assets['user_item_matrix_lean']
 
 # Unpack Dense Cosine Assets
-item_sim_df = assets['item_sim_df']
-user_sim_df = assets['user_sim_df']
+item_sim_df = assets['item_sim_lean']
+user_sim_df = assets['user_sim_lean']
 
 # Unpack KNN Assets
-model_knn_sample = assets['model_knn_sample']
-item_item_sparse_sample = assets['item_item_sparse_sample']
-matrix_product_ids_sample = assets['matrix_product_ids_sample']
+#model_knn_sample = assets['model_knn_sample']
+#item_item_sparse_sample = assets['item_item_sparse_sample']
+#matrix_product_ids_sample = assets['matrix_product_ids_sample']
 
 model_knn_full = assets['model_knn_full']
 item_item_sparse_full = assets['item_item_sparse_full']
 matrix_product_ids_full = assets['matrix_product_ids_full']
 
-# Unpack Content-Based Assets
-df_amazon = assets['df_amazon']
-amazon_cosine_sim = assets['amazon_cosine_sim']
-amazon_indices = assets['amazon_indices']
+# Unpack Amazon Content-Based Assets
+df_amazon = assets['df_amazon_lean']
+amazon_cosine_sim = assets['amazon_sim_lean']
+amazon_indices = assets['amazon_indices_lean']
 
 # Sidebar Navigation
 navigation = st.sidebar.radio("Navigate Engines", [
