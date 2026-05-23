@@ -63,22 +63,9 @@ def get_similar_products_knn_full(product_id, matrix_product_ids_full, model_knn
 
 # --- ENGINE 4: CONTENT-BASED FILTERING (Amazon Grocery Metadata) ---
 def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_amazon):
-    # amazon_cosine_sim is now the 'amazon_sim_lean' dictionary from your pkl.gz!
-    if parent_asin not in amazon_cosine_sim:
+    if parent_asin not in amazon_indices:
         return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
-        
-    # Grab the pre-calculated similarity dictionary for this item
-    # Structure looks like: {"B000MATCH1": 0.8921, "B000MATCH2": 0.7412, ...}
-    top_matches_dict = amazon_cosine_sim[parent_asin]
-    
-    # Isolate just the top 5 ASIN keys (excluding the item itself if present)
-    top_asin_keys = [asin for asin in top_matches_dict.keys() if asin != parent_asin][:5]
-    
-    # Filter df_amazon to only include those 5 matching items
-    results_df = df_amazon[df_amazon['parent_asin'].isin(top_asin_keys)].copy()
-    
-    # Map the actual scores directly into a brand new column
-    results_df['similarity_score'] = results_df['parent_asin'].map(top_matches_dict)
-    
-    # Sort them highest-to-lowest and clean the index for PyArrow
-    return results_df.sort_values(by='similarity_score', ascending=False).reset_index(drop=True)
+    idx = amazon_indices[parent_asin]
+    sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
+    item_indices = [i[0] for i in sim_scores[1:6]]
+    return df_amazon.iloc[item_indices]
