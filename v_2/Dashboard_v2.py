@@ -77,7 +77,7 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
 
 elif navigation == "Instacart: Find Similar Products (Cosine)":
     st.subheader("📊 Standard Item-Item Engine (Dense Cosine DataFrame)")
-    valid_names = [id_to_name[pid] for pid in item_sim_df.columns if pid in id_to_name]
+    valid_names = [id_to_name[pid] for pid in item_sim_df..keys() if pid in id_to_name]
     chosen_name = st.selectbox("Search Sample Catalog:", sorted(valid_names))
     chosen_id = [k for k, v in id_to_name.items() if v == chosen_name][0]
     

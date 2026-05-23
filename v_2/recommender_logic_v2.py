@@ -14,13 +14,33 @@ def get_similar_products_cosine_similarity(product_id, item_sim_df, id_to_name, 
         'similarity_score': top_products.values
     })
 
-# --- ENGINE 1B: USER RECS VIA PAST BASKET (Instacart Sample) ---
+# --- ENGINE 1B: USER RECS VIA PAST BASKET (Instacart Sample) --- (Dictionary-Safe Version) ---
 def recommend_user_via_basket_items_prod_name(user_id, user_item_matrix, item_sim_df, id_to_name, top_n=5):
+    # 1. Get the items this user has already bought
     user_history = user_item_matrix.loc[user_id]
     bought_product_ids = user_history[user_history > 0].index
-    similar_scores = item_sim_df[bought_product_ids].sum(axis=1).drop(bought_product_ids, errors='ignore')
+    
+    # 2. Accumulate similarity scores from the dictionary
+    scores = {}
+    for pid in bought_product_ids:
+        # Check if the product exists in our top-50 similarity dictionary
+        if pid in item_sim_df:
+            # item_sim_df[pid] is a Pandas Series of its top 50 similar items
+            for sim_pid, score in item_sim_df[pid].items():
+                scores[sim_pid] = scores.get(sim_pid, 0) + score
+                
+    # 3. Convert results to a Series, drop items they already bought, and sort
+    if not scores:
+        return pd.DataFrame(columns=['product_name', 'recommendation_score'])
+        
+    similar_scores = pd.Series(scores).drop(bought_product_ids, errors='ignore')
     top_recs = similar_scores.sort_values(ascending=False).head(top_n)
-    return pd.DataFrame({'product_name': top_recs.index.map(id_to_name), 'recommendation_score': top_recs.values})
+    
+    return pd.DataFrame({
+        'product_name': top_recs.index.map(id_to_name), 
+        'recommendation_score': top_recs.values
+    })
+
 
 # --- ENGINE 2: USER-USER RECS VIA SIMILAR CUSTOMERS (Instacart Sample) ---
 def recommend_user_via_users_prod_name(user_id, user_sim_df, user_item_matrix, id_to_name, top_n=5, n_similar_users=10):
