@@ -63,27 +63,22 @@ def get_similar_products_knn_full(product_id, matrix_product_ids_full, model_knn
 
 # --- ENGINE 4: CONTENT-BASED FILTERING (Amazon Grocery Metadata) ---
 def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_amazon):
-    if parent_asin not in amazon_indices:
+    # amazon_cosine_sim is now the 'amazon_sim_lean' dictionary from your pkl.gz!
+    if parent_asin not in amazon_cosine_sim:
         return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
         
-    idx = amazon_indices[parent_asin]
+    # Grab the pre-calculated similarity dictionary for this item
+    # Structure looks like: {"B000MATCH1": 0.8921, "B000MATCH2": 0.7412, ...}
+    top_matches_dict = amazon_cosine_sim[parent_asin]
     
-    # Handle duplicate keys safely if index returns a Series
-    if isinstance(idx, pd.Series):
-        idx = idx.iloc[0]
-
-    # Grab similarities and sort descending
-    sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
+    # Isolate just the top 5 ASIN keys (excluding the item itself if present)
+    top_asin_keys = [asin for asin in top_matches_dict.keys() if asin != parent_asin][:5]
     
-    # Get top 5 matches (skipping index 0)
-    top_matches = sim_scores[1:6]
+    # Filter df_amazon to only include those 5 matching items
+    results_df = df_amazon[df_amazon['parent_asin'].isin(top_asin_keys)].copy()
     
-    # Extract both indices and mathematical scores
-    item_indices = [i[0] for i in top_matches]
-    scores = [i[1] for i in top_matches]
+    # Map the actual scores directly into a brand new column
+    results_df['similarity_score'] = results_df['parent_asin'].map(top_matches_dict)
     
-    # Create a safe copy of the table slice and map the scores
-    results_df = df_amazon[['parent_asin', 'title', 'store']].iloc[item_indices].copy()
-    results_df['similarity_score'] = scores
-    
-    return results_df
+    # Sort them highest-to-lowest and clean the index for PyArrow
+    return results_df.sort_values(by='similarity_score', ascending=False).reset_index(drop=True)
