@@ -68,6 +68,10 @@ def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_am
         
     idx = amazon_indices[parent_asin]
     
+    # Handle duplicate keys safely if index returns a Series
+    if isinstance(idx, pd.Series):
+        idx = idx.iloc[0]
+
     # Grab similarities and sort descending
     sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
     
