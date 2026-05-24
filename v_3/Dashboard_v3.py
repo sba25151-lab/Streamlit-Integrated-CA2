@@ -18,7 +18,7 @@ st.title("🛒 Multi-Engine E-Commerce Recommendation Dashboard")
 
 @st.cache_resource
 def load_compressed_assets():
-    # Dynamically locate the folder where Dashboard_v2.py sits
+    # Dynamically locate the folder where Dashboard_v3.py sits
     current_dir = os.path.dirname(os.path.abspath(__file__))
     pkl_path = os.path.join(current_dir, 'dashboard_assets.pkl.gz')
     
