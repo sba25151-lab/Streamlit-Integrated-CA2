@@ -14,7 +14,7 @@ from recommender_logic_v3 import (
 )
 
 st.set_page_config(layout="wide")
-st.title("🛒 Multi-Engine E-Commerce Recommendation Dashboard")
+st.title("Multi-Engine E-Commerce Recommendation Dashboard")
 
 
 @st.cache_resource
@@ -125,9 +125,65 @@ elif navigation == "Instacart: Find Similar Products (Cosine)":
 
 
 elif navigation == "Instacart: Personalized User Recommendations":
-    st.subheader("👤 User-Centric Recommendation Hub")
-    valid_user_ids = user_item_matrix.index.tolist()
+    st.subheader("👥 User-Based Personalization Engines")
+    valid_user_ids = sorted(list(user_item_matrix.index))
     chosen_user = st.selectbox("Select a User ID to inspect:", valid_user_ids)
+    
+    st.markdown("### 📈 Customer Purchase Profile")
+    
+    # Calculate basket size for all users instantly from the user_item_matrix
+    all_basket_sizes = (user_item_matrix > 0).sum(axis=1).reset_index()
+    all_basket_sizes.columns = ['user_id', 'basket_size']
+    
+    # Extract metrics for the selected user vs the dataset group average
+    chosen_user_size = int(all_basket_sizes[all_basket_sizes['user_id'] == chosen_user]['basket_size'].iloc[0])
+    avg_basket_size = float(all_basket_sizes['basket_size'].mean())
+    
+    # Render side-by-side metric comparison cards
+    metric_col1, metric_col2 = st.columns(2)
+    with metric_col1:
+        st.metric(
+            label=f"Unique Items Bought by User {chosen_user}", 
+            value=chosen_user_size,
+            delta=f"{chosen_user_size - round(avg_basket_size, 1)} vs Dataset Avg"
+        )
+    with metric_col2:
+        st.metric(
+            label="Average Basket Size (All Users)", 
+            value=f"{avg_basket_size:.1f} items"
+        )
+        
+    # Generate the distribution histogram using Plotly
+    fig_hist = px.histogram(
+        all_basket_sizes,
+        x='basket_size',
+        title="Where Does This User Fall in the Purchase Distribution?",
+        labels={'basket_size': 'Number of Unique Products Purchased'},
+        color_discrete_sequence=['#2E86C1'],
+        nbins=20
+    )
+    
+    # Draw a vertical line showing exactly where the selected user stands
+    fig_hist.add_vline(
+        x=chosen_user_size, 
+        line_dash="dash", 
+        line_color="#E67E22", 
+        line_width=3,
+        annotation_text=f" User {chosen_user} Location", 
+        annotation_position="top right"
+    )
+    
+    fig_hist.update_layout(
+        xaxis_title="Unique Items Purchased",
+        yaxis_title="Number of Customers",
+        bargap=0.05
+    )
+    
+    # Display the interactive plot on your dashboard
+    st.plotly_chart(fig_hist, use_container_width=True)
+    
+    st.markdown("---")
+    st.markdown("### 🤖 Generate Personal Recommendations")
     
     col1, col2 = st.columns(2)
     with col1:
