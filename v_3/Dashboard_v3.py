@@ -270,3 +270,17 @@ elif navigation == "Amazon: Content-Based Meta Engine":
             st.warning("⚠️ Parent ASIN not found in this dataset slice.")
         else:
             st.dataframe(recs, use_container_width=True)
+                
+                st.markdown("### 📊 Recommendation Confidence")
+                name_col = 'title' if 'title' in recs else 'product_name'
+                
+                fig = px.bar(
+                    recs, 
+                    x=name_col, 
+                    y='similarity_score', 
+                    orientation='v',
+                    color='similar_people_bought',
+                    color_continuous_scale='Blues'
+                )
+                fig.update_layout(yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig, use_container_width=True)
