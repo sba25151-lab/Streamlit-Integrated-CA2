@@ -203,9 +203,9 @@ elif navigation == "Instacart: Personalized User Recommendations":
                 # Create a clean horizontal bar chart using Plotly Express
                 fig = px.bar(
                     recs, 
-                    x='recommendation_score', 
-                    y=name_col, 
-                    orientation='h',
+                    x=name_col, 
+                    y='recommendation_score', 
+                    orientation='v',
                     color='recommendation_score',
                     color_continuous_scale='Blues'
                 )
