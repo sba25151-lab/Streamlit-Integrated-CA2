@@ -62,10 +62,41 @@ def get_similar_products_knn_full(product_id, matrix_product_ids_full, model_knn
     return pd.DataFrame({'product_name': rec_names_df, 'similarity_score': [1 - d for d in flat_distances]})
 
 # --- ENGINE 4: CONTENT-BASED FILTERING (Amazon Grocery Metadata) ---
-def recommend_grocery_meta(parent_asin):
+def recommend_grocery_meta(parent_asin, amazon_indices, amazon_cosine_sim, df_amazon):
+    # 1. Graceful fallback if item doesn't exist
     if parent_asin not in amazon_indices:
-        return pd.DataFrame(columns=['parent_asin', 'title', 'store'])
+        return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
+        
+    # 2. Extract index safely
     idx = amazon_indices[parent_asin]
-    sim_scores = sorted(list(enumerate(amazon_cosine_sim[idx])), key=lambda x: x[1], reverse=True)
-    item_indices = [i[0] for i in sim_scores[1:6]]
-    return df_amazon.iloc[item_indices]
+    if isinstance(idx, pd.Series):
+        idx = idx.iloc[0]
+        
+    # 3. Calculate scores identically to your Jupyter notebook
+    try:
+        sim_scores = list(enumerate(amazon_cosine_sim[idx]))
+    except Exception:
+        # Fallback if amazon_cosine_sim has been modified into a dictionary format
+        if isinstance(amazon_cosine_sim, dict) and parent_asin in amazon_cosine_sim:
+            top_matches_dict = amazon_cosine_sim[parent_asin]
+            top_asin_keys = [asin for asin in top_matches_dict.keys() if asin != parent_asin][:5]
+            results_df = df_amazon[df_amazon['parent_asin'].isin(top_asin_keys)].copy()
+            results_df['similarity_score'] = results_df['parent_asin'].map(top_matches_dict)
+            results_df['similarity_score'] = results_df['similarity_score'].astype(float)
+            return results_df[['parent_asin', 'title', 'store', 'similarity_score']].reset_index(drop=True)
+        return pd.DataFrame(columns=['parent_asin', 'title', 'store', 'similarity_score'])
+
+    # Sort descending 
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+    
+    # Get top 5 matches (skipping index 0)
+    top_matches = sim_scores[1:6]
+    item_indices = [int(i[0]) for i in top_matches]
+    scores = [float(i[1]) for i in top_matches]
+    
+    # 4. Strictly slice, copy, and align columns to prevent metadata leaks
+    results_df = df_amazon[['parent_asin', 'title', 'store']].iloc[item_indices].copy()
+    results_df['similarity_score'] = scores
+    
+    # 5. Reset index completely to clear raw pandas internal row-numbers 
+    return results_df.reset_index(drop=True)
