@@ -140,6 +140,22 @@ elif navigation == "Instacart: Personalized User Recommendations":
             st.dataframe(recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name), use_container_width=True)
 
 elif navigation == "Amazon: Content-Based Meta Engine":
+    st.subheader("🛒 Dataset Overview: Top 10 Amazon Stores")
+
+    # Count the items per store, grab the top 10
+    top_stores = df_amazon['store'].value_counts().head(10).reset_index()
+    top_stores.columns = ['store', 'item_count']
+
+    
+    fig_stores = px.bar(
+        top_stores, 
+        x='store', 
+        y='item_count', 
+        title="Items per Brand in Database",
+        color='item_count',
+        color_continuous_scale='Teal')
+    st.plotly_chart(fig_stores, use_container_width=True)
+
     st.subheader("📖 Content text-matching engine (TF-IDF Title Matching)")
     amazon_choices = df_amazon.set_index('parent_asin')['title'].to_dict()
     chosen_title = st.selectbox("Select an Amazon Item:", list(amazon_choices.values()))
