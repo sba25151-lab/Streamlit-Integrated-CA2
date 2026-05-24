@@ -47,8 +47,9 @@ matrix_product_ids_full = assets['matrix_product_ids_full']
 
 # Unpack Amazon Content-Based Assets
 df_amazon = assets['df_amazon']
-amazon_cosine_sim = assets['amazon_cosine_sim']
 amazon_indices = assets['amazon_indices']
+amazon_match_indices = assets['amazon_match_indices']
+amazon_match_scores = assets['amazon_match_scores']
 
 # Sidebar Navigation
 navigation = st.sidebar.radio("Navigate Engines", [
@@ -107,5 +108,10 @@ elif navigation == "Amazon: Content-Based Meta Engine":
     chosen_asin = [k for k, v in amazon_choices.items() if v == chosen_title][0]
     
     if st.button("Find Text Match Recommendations"):
-        recs = recommend_grocery_meta(chosen_asin, amazon_indices, amazon_cosine_sim, df_amazon)
-        st.dataframe(recs, use_container_width=True)
+        # Pass the separated indices and score arrays explicitly
+        recs = recommend_grocery_meta(chosen_asin, amazon_indices, amazon_match_indices, amazon_match_scores, df_amazon)
+        
+        if recs.empty:
+            st.warning("⚠️ Parent ASIN not found in this dataset slice.")
+        else:
+            st.dataframe(recs, use_container_width=True)
