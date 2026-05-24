@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import os
 
-from recommender_logic_v2 import (
+from recommender_logic_v3 import (
     get_similar_products_cosine_similarity, 
     recommend_user_via_basket_items_prod_name, 
     recommend_user_via_users_prod_name, 
