@@ -74,7 +74,8 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
             item_item_sparse_full, 
             id_to_name
         )
-        st.dataframe(recs, use_container_width=True)
+        st.dataframe(recs, use_container_width=True, column_config={
+    "similarity_score": st.column_config.NumberColumn(format="%.4f")})
 
 elif navigation == "Instacart: Find Similar Products (Cosine)":
     st.subheader("📊 Standard Item-Item Engine (Dense Cosine DataFrame)")
