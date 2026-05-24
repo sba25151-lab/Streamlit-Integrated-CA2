@@ -230,9 +230,9 @@ elif navigation == "Instacart: Personalized User Recommendations":
                 
                 fig = px.bar(
                     recs, 
-                    x='similar_people_bought', 
-                    y=name_col, 
-                    orientation='h',
+                    x=name_col, 
+                    y='similar_people_bought', 
+                    orientation='v',
                     color='similar_people_bought',
                     color_continuous_scale='Blues'
                 )
