@@ -276,9 +276,9 @@ elif navigation == "Amazon: Content-Based Meta Engine":
                 
             fig = px.bar(
                   recs, 
-                  x=name_col, 
-                  y='similarity_score', 
-                  orientation='v',
+                  x='similarity_score', 
+                  y=name_col, 
+                  orientation='h',
                   color='similarity_score',
                   color_continuous_scale='Blues')
 
