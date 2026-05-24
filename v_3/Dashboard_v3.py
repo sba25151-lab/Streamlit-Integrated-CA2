@@ -190,7 +190,7 @@ elif navigation == "Instacart: Personalized User Recommendations":
         st.markdown("**Option A: Based on their overall purchase history basket similarity**")
         if st.button("Run Basket Engine"):
             
-            recs = recommend_user_via_basket_items_prod_name(chosen_user, user_item_matrix, item_sim_df, id_to_name)
+            recs = recommend_user_via_basket_items_prod_name(chosen_user, user_item_matrix, item_sim_df, id_to_name).reset_index()
             
             if recs.empty:
                 st.warning("No recommendations found for this user's profile.")
@@ -218,7 +218,7 @@ elif navigation == "Instacart: Personalized User Recommendations":
         st.markdown("**Option B: Collaborative Filtering (What similar customers bought)**")
         if st.button("Run User-User Engine"):
             
-            recs = recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name)
+            recs = recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name).reset_index()
             
             if recs.empty:
                 st.warning("No recommendations found for this user's profile.")
@@ -238,6 +238,8 @@ elif navigation == "Instacart: Personalized User Recommendations":
                 )
                 fig.update_layout(yaxis={'categoryorder':'total ascending'})
                 st.plotly_chart(fig, use_container_width=True)
+
+
 elif navigation == "Amazon: Content-Based Meta Engine":
     st.subheader("🛒 Dataset Overview: Top 10 Amazon Stores")
 
