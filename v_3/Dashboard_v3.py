@@ -273,7 +273,7 @@ elif navigation == "Amazon: Content-Based Meta Engine":
                 
             st.markdown("### 📊 Recommendation Confidence")
             name_col = 'title' if 'title' in recs else 'product_name'
-            recs['title_short'] = recs[name_col].apply(lambda x: x[:25] + '...' if len(str(x)) > 25 else x)
+            recs['title_short'] = recs[name_col].apply(lambda x: x[:35] + '...' if len(str(x)) > 35 else x)
                 
             fig = px.bar(
                   recs, 
