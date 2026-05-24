@@ -78,7 +78,8 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
         st.dataframe(recs, use_container_width=True, column_config={"similarity_score": st.column_config.NumberColumn(format="%.4f")})
     
     st.markdown("### 📊 Recommendation Confidence")
-
+    # Determine the correct name column whether on Amazon or Instacart
+    name_col = 'title' if 'title' in recs else 'product_name'
     
     # Create a clean horizontal bar chart using Plotly Express
     fig = px.bar(
