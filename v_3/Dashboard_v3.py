@@ -61,7 +61,7 @@ navigation = st.sidebar.radio("Navigate Engines", [
 ])
 
 if navigation == "Instacart: Find Similar Products (KNN Full)":
-    st.subheader("🚀 High-Performance Item-Item Engine (KNN Matrix)")
+    st.subheader("High-Performance Item-Item Engine (KNN Matrix)")
     valid_names = [id_to_name[pid] for pid in matrix_product_ids_full if pid in id_to_name]
     chosen_name = st.selectbox("Search Product Catalog:", sorted(valid_names))
     chosen_id = [k for k, v in id_to_name.items() if v == chosen_name][0]
@@ -97,7 +97,7 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
 
 
 elif navigation == "Instacart: Find Similar Products (Cosine)":
-    st.subheader("📊 Standard Item-Item Engine (Dense Cosine DataFrame)")
+    st.subheader("Standard Item-Item Engine (Dense Cosine DataFrame)")
     valid_names = [id_to_name[pid] for pid in item_sim_df.keys() if pid in id_to_name]
     chosen_name = st.selectbox("Search Sample Catalog:", sorted(valid_names))
     chosen_id = [k for k, v in id_to_name.items() if v == chosen_name][0]
@@ -183,18 +183,61 @@ elif navigation == "Instacart: Personalized User Recommendations":
     st.plotly_chart(fig_hist, use_container_width=True)
     
     st.markdown("---")
-    st.markdown("### 🤖 Generate Personal Recommendations")
+    st.markdown("### Generate Personal Recommendations")
     
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("**Option A: Based on their overall purchase history basket similarity**")
         if st.button("Run Basket Engine"):
-            st.dataframe(recommend_user_via_basket_items_prod_name(chosen_user, user_item_matrix, item_sim_df, id_to_name), use_container_width=True)
+            
+            recs = recommend_user_via_basket_items_prod_name(chosen_user, user_item_matrix, item_sim_df, id_to_name)
+            
+            if recs.empty:
+                st.warning("No recommendations found for this user's profile.")
+            else:
+                st.dataframe(recs, use_container_width=True)
+
+                st.markdown("### 📊 Recommendation Confidence")
+                name_col = 'title' if 'title' in recs else 'product_name'
+        
+                # Create a clean horizontal bar chart using Plotly Express
+                fig = px.bar(
+                    recs, 
+                    x='similarity_score', 
+                    y=name_col, 
+                    orientation='h',
+                    color='similarity_score',
+                    color_continuous_scale='Blues'
+                )
+        
+                # Reverse the Y-axis so the highest score is at the top of the chart
+                fig.update_layout(yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig, use_container_width=True)
+
     with col2:
         st.markdown("**Option B: Collaborative Filtering (What similar customers bought)**")
         if st.button("Run User-User Engine"):
-            st.dataframe(recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name), use_container_width=True)
-
+            
+            recs = recommend_user_via_users_prod_name(chosen_user, user_sim_df, user_item_matrix, id_to_name)
+            
+            if recs.empty:
+                st.warning("No recommendations found for this user's profile.")
+            else:
+                st.dataframe(recs, use_container_width=True)
+                
+                st.markdown("### 📊 Recommendation Confidence")
+                name_col = 'title' if 'title' in recs else 'product_name'
+                
+                fig = px.bar(
+                    recs, 
+                    x='similarity_score', 
+                    y=name_col, 
+                    orientation='h',
+                    color='similarity_score',
+                    color_continuous_scale='Blues'
+                )
+                fig.update_layout(yaxis={'categoryorder':'total ascending'})
+                st.plotly_chart(fig, use_container_width=True)
 elif navigation == "Amazon: Content-Based Meta Engine":
     st.subheader("🛒 Dataset Overview: Top 10 Amazon Stores")
 
