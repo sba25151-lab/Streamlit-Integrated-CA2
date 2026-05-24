@@ -279,7 +279,7 @@ elif navigation == "Amazon: Content-Based Meta Engine":
                   x=name_col, 
                   y='similarity_score', 
                   orientation='v',
-                  color='similar_people_bought',
+                  color='similarity_score',
                   color_continuous_scale='Blues')
 
             fig.update_layout(yaxis={'categoryorder':'total ascending'})
