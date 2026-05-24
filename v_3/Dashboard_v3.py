@@ -1,4 +1,5 @@
 import streamlit as st
+import plotly.express as px
 import pandas as pd
 import joblib
 import numpy as np
@@ -76,6 +77,25 @@ if navigation == "Instacart: Find Similar Products (KNN Full)":
         )
         st.dataframe(recs, use_container_width=True, column_config={
     "similarity_score": st.column_config.NumberColumn(format="%.4f")})
+	st.markdown("### 📊 Recommendation Confidence")
+    # Determine the correct name column whether on Amazon or Instacart
+    name_col = 'title' if 'title' in recs.columns else 'product_name'
+    
+    # Create a clean horizontal bar chart using Plotly Express
+    fig = px.bar(
+        recs, 
+        x='similarity_score', 
+        y=name_col, 
+        orientation='h',
+        color='similarity_score',
+        color_continuous_scale='Blues' # Looks highly professional
+    )
+    
+    # Reverse the Y-axis so the highest score is at the top of the chart
+    fig.update_layout(yaxis={'categoryorder':'total ascending'})
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 elif navigation == "Instacart: Find Similar Products (Cosine)":
     st.subheader("📊 Standard Item-Item Engine (Dense Cosine DataFrame)")
